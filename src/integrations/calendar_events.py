@@ -23,7 +23,7 @@ class PillEventCreator:
     # Event templates based on treasure map
     EVENT_TEMPLATES = {
         'mom_out': {
-            'summary': '💊 Ex Out of ADHD Meds',
+            'summary': '💊 [ADHD-PILLS] Ex Out of Meds',
             'description': 'Ex-wife runs out of ADHD medication today.',
             'colorId': '11',  # Red
             'reminders': {
@@ -34,7 +34,7 @@ class PillEventCreator:
             }
         },
         'refill_eligible': {
-            'summary': '💊 Can Refill ADHD Prescription',
+            'summary': '💊 [ADHD-PILLS] Can Refill Prescription',
             'description': 'Eligible to refill ADHD prescription (85% rule met). Contact pharmacy/doctor.',
             'colorId': '9',  # Blue
             'reminders': {
@@ -45,7 +45,7 @@ class PillEventCreator:
             }
         },
         'distribution_due': {
-            'summary': '💊 Give {quantity} Pills to Ex',
+            'summary': '💊 [ADHD-PILLS] Give {quantity} Pills to Ex',
             'description': 'Give {quantity} ADHD pills to ex-wife for her custody days.\n\nFor custody period: {period}',
             'colorId': '10',  # Green
             'reminders': {
@@ -281,10 +281,10 @@ class PillEventCreator:
             time_max=time_max
         )
         
-        # Filter for pill events (containing 💊 emoji)
+        # Filter for pill events (containing [ADHD-PILLS] tag)
         pill_events = [
             event for event in all_events
-            if '💊' in event.get('summary', '')
+            if '[ADHD-PILLS]' in event.get('summary', '')
         ]
         
         return pill_events
