@@ -30,6 +30,12 @@ data/*.db
 data/*.db-journal
 data/*.sqlite
 data/*.sqlite3
+data/*.json
+scripts/data/*.db
+scripts/data/*.db-journal
+scripts/data/*.sqlite
+scripts/data/*.sqlite3
+scripts/data/*.json
 
 # Configuration & Credentials
 config/credentials.json
