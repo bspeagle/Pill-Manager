@@ -1,0 +1,25 @@
+# CLI & Display
+rich>=13.7.0
+click>=8.1.7
+
+# Google Calendar API (for g-cal-tools integration)
+google-api-python-client>=2.100.0
+google-auth-httplib2>=0.1.1
+google-auth-oauthlib>=1.1.0
+
+# Date handling
+python-dateutil>=2.8.2
+
+# Database
+# sqlite3 is built-in to Python
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Testing
+pytest>=7.4.3
+pytest-cov>=4.1.0
+freezegun>=1.4.0
+
+# Data import/export (optional)
+pandas>=2.1.3
