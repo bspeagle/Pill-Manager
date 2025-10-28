@@ -113,11 +113,20 @@ class PillCalculator:
             days_until_out = (mother_out_date - date.today()).days
             is_out = date.today() >= mother_out_date
             
-            pills_with_father = fill_quantity - dist_quantity
+            # Sum ALL distributions for this fill, not just the latest
+            fill_id = latest_fill['id']
+            all_distributions = self.db.get_distribution_history(limit=100)  # Get all
+            total_distributed = sum(
+                d['quantity'] for d in all_distributions 
+                if d.get('fill_id') == fill_id
+            )
+            
+            pills_with_father = fill_quantity - total_distributed
             
             status['distribution'] = {
                 'date': dist_date,
                 'quantity': dist_quantity,
+                'total_distributed': total_distributed,
                 'days_ago': (date.today() - dist_date).days,
                 'mother_out_date': mother_out_date,
                 'days_until_out': days_until_out,

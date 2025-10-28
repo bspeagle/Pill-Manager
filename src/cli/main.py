@@ -21,10 +21,13 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from src.core.database import PillDatabase
 from src.core.calculator import PillCalculator
 from src.integrations.custody_reader import CustodyReader
+from src.integrations.calendar_events import PillEventCreator
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 from rich import box
+from rich.prompt import Confirm, Prompt
+import argparse
 
 console = Console()
 
@@ -72,6 +75,7 @@ def show_status(calendar_id: str):
         dist = status['distribution']
         console.print("[bold]👤 Ex-Wife Status[/bold]")
         console.print(f"  Last Distribution: {dist['date'].strftime('%B %d, %Y')} ({dist['quantity']} pills)")
+        console.print(f"  Total Distributed: {dist['total_distributed']} pills")
         console.print(f"  Runs Out: {dist['mother_out_date'].strftime('%B %d, %Y')}")
         
         if dist['is_out']:
@@ -137,6 +141,156 @@ def show_status(calendar_id: str):
         console.print("[yellow]⚠️  No distribution data found[/yellow]\n")
 
 
+def sync_calendar(calendar_id: str):
+    """Sync pill events to Google Calendar"""
+    
+    console.print("\n[bold cyan]📅 Syncing Events to Calendar[/bold cyan]\n")
+    
+    # Initialize components
+    db = PillDatabase()
+    calc = PillCalculator(db)
+    custody = CustodyReader(calendar_id)
+    event_creator = PillEventCreator(calendar_id)
+    
+    # Get current status
+    status = calc.get_current_status()
+    
+    if not status['has_data']:
+        console.print("[red]❌ No data found. Please seed database first.[/red]\n")
+        return
+    
+    if 'distribution' not in status:
+        console.print("[red]❌ No distribution data found.[/red]\n")
+        return
+    
+    dist = status['distribution']
+    refill = status['refill']
+    
+    # Only sync if action required
+    if not (dist['is_out'] or dist['days_until_out'] <= 2):
+        console.print("[yellow]ℹ️  No urgent actions required. Events not needed yet.[/yellow]\n")
+        return
+    
+    # Calculate next distribution
+    try:
+        after_date = dist['mother_out_date']
+        next_mom_day = custody.get_next_mother_custody_day(after_date)
+        
+        refill_date = refill['eligible_date']
+        distribution_start = refill_date
+        distribution_end = refill_date + timedelta(days=30)
+        
+        distribution = custody.get_pill_distribution(distribution_start, distribution_end)
+        
+        next_dist = calc.calculate_next_distribution(
+            mother_out_date=dist['mother_out_date'],
+            refill_date=refill_date,
+            next_mother_custody_day=next_mom_day,
+            mother_pills_needed=distribution['mother_pills']
+        )
+        
+    except Exception as e:
+        console.print(f"[red]Error calculating distribution: {e}[/red]\n")
+        return
+    
+    # Show summary
+    console.print("[bold]Events to create:[/bold]")
+    console.print(f"  1. 💊 Ex Out of ADHD Meds - {dist['mother_out_date'].strftime('%B %d, %Y')}")
+    console.print(f"  2. 💊 Can Refill ADHD Prescription - {refill_date.strftime('%B %d, %Y')}")
+    console.print(f"  3. 💊 Give {next_dist['pills_to_give']} Pills to Ex - {next_dist['distribution_date'].strftime('%B %d, %Y')}")
+    console.print()
+    
+    # Confirm
+    if not Confirm.ask("[bold]Create these calendar events?[/bold]", default=True):
+        console.print("[yellow]Cancelled[/yellow]\n")
+        return
+    
+    # Create events
+    console.print("\n[yellow]Creating events...[/yellow]")
+    
+    results = event_creator.create_all_events(
+        mom_out_date=dist['mother_out_date'],
+        refill_date=refill_date,
+        distribution_date=next_dist['distribution_date'],
+        pills_to_give=next_dist['pills_to_give'],
+        period_start=distribution_start,
+        period_end=distribution_end
+    )
+    
+    # Show results
+    console.print()
+    if results['created']:
+        console.print("[bold green]✅ Events Created:[/bold green]")
+        for event in results['created']:
+            console.print(f"  ✓ {event['summary']} - {event['date'].strftime('%b %d')}")
+    
+    if results['failed']:
+        console.print(f"\n[bold red]❌ Failed to create {len(results['failed'])} events:[/bold red]")
+        for error in results['errors']:
+            console.print(f"  ✗ {error['type']}: {error['error']}")
+    
+    if not results['failed']:
+        console.print("\n[bold green]🎉 All events synced successfully![/bold green]\n")
+    else:
+        console.print()
+
+
+def record_distribution(dist_date: date, quantity: int, notes: str = ""):
+    """Record pills given to ex-wife"""
+    
+    console.print("\n[bold cyan]📝 Recording Distribution[/bold cyan]\n")
+    
+    # Initialize database
+    db = PillDatabase()
+    
+    # Get latest fill
+    latest_fill = db.get_latest_fill()
+    if not latest_fill:
+        console.print("[red]❌ No fill data found. Please record a fill first.[/red]\n")
+        return
+    
+    fill_id = latest_fill['id']
+    
+    # Show summary
+    console.print("[bold]Distribution Details:[/bold]")
+    console.print(f"  Date: {dist_date.strftime('%B %d, %Y')}")
+    console.print(f"  Quantity: {quantity} pills")
+    console.print(f"  Associated Fill: {latest_fill['fill_date']} ({latest_fill['quantity']} pills)")
+    if notes:
+        console.print(f"  Notes: {notes}")
+    console.print()
+    
+    # Confirm
+    if not Confirm.ask("[bold]Record this distribution?[/bold]", default=True):
+        console.print("[yellow]Cancelled[/yellow]\n")
+        return
+    
+    # Record in database
+    try:
+        dist_id = db.add_distribution(
+            distribution_date=dist_date,
+            quantity=quantity,
+            fill_id=fill_id,
+            notes=notes
+        )
+        
+        console.print(f"[green]✅ Distribution recorded (ID: {dist_id})[/green]\n")
+        
+        # Show updated status
+        calc = PillCalculator(db)
+        status = calc.get_current_status()
+        
+        if status['has_data'] and 'distribution' in status:
+            dist = status['distribution']
+            console.print("[bold]Updated Status:[/bold]")
+            console.print(f"  Last Distribution: {dist['date'].strftime('%B %d, %Y')} ({dist['quantity']} pills)")
+            console.print(f"  Mother Runs Out: {dist['mother_out_date'].strftime('%B %d, %Y')}")
+            console.print(f"  Pills with Father: {dist['pills_with_father']}\n")
+        
+    except Exception as e:
+        console.print(f"[red]❌ Failed to record distribution: {e}[/red]\n")
+
+
 def main():
     """Main CLI entry point"""
     
@@ -148,8 +302,41 @@ def main():
         console.print("[yellow]Run: python scripts/list_calendars.py to find your calendar ID[/yellow]\n")
         return
     
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Pill Manager CLI')
+    parser.add_argument('command', nargs='?', default='status',
+                       choices=['status', 'sync-calendar', 'record-distribution'],
+                       help='Command to run')
+    parser.add_argument('--date', type=str, help='Distribution date (YYYY-MM-DD)')
+    parser.add_argument('--quantity', type=int, help='Number of pills')
+    parser.add_argument('--notes', type=str, default='', help='Optional notes')
+    
+    args = parser.parse_args()
+    
     try:
-        show_status(calendar_id)
+        if args.command == 'sync-calendar':
+            sync_calendar(calendar_id)
+        elif args.command == 'record-distribution':
+            # Validate required arguments
+            if not args.date or not args.quantity:
+                console.print("\n[red]❌ Error: --date and --quantity are required for record-distribution[/red]")
+                console.print("\n[bold]Usage:[/bold]")
+                console.print("  python src/cli/main.py record-distribution --date YYYY-MM-DD --quantity N [--notes 'text']\n")
+                console.print("[bold]Example:[/bold]")
+                console.print("  python src/cli/main.py record-distribution --date 2025-10-31 --quantity 3 --notes 'Extra pills for weekend'\n")
+                return
+            
+            # Parse date
+            try:
+                dist_date = datetime.strptime(args.date, '%Y-%m-%d').date()
+            except ValueError:
+                console.print(f"\n[red]❌ Invalid date format: {args.date}[/red]")
+                console.print("[yellow]Use format: YYYY-MM-DD (e.g., 2025-10-31)[/yellow]\n")
+                return
+            
+            record_distribution(dist_date, args.quantity, args.notes)
+        elif args.command == 'status':
+            show_status(calendar_id)
     except KeyboardInterrupt:
         console.print("\n[yellow]Cancelled[/yellow]\n")
     except Exception as e:
