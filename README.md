@@ -91,7 +91,7 @@ cd ~/Projects  # or your preferred directory
 git clone https://github.com/bspeagle/g-cal-tools.git
 
 # Clone pill_manager as a sibling directory
-git clone https://github.com/yourusername/pill_manager.git
+git clone https://github.com/bspeagle/pill_manager.git
 cd pill_manager
 
 # Create virtual environment
