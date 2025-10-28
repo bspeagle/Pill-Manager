@@ -166,11 +166,6 @@ def sync_calendar(calendar_id: str):
     dist = status['distribution']
     refill = status['refill']
     
-    # Only sync if action required
-    if not (dist['is_out'] or dist['days_until_out'] <= 2):
-        console.print("[yellow]ℹ️  No urgent actions required. Events not needed yet.[/yellow]\n")
-        return
-    
     # Calculate next distribution
     try:
         after_date = dist['mother_out_date']
