@@ -79,13 +79,18 @@ graph TD
 ### Prerequisites
 
 - Python 3.8+
+- [g-cal-tools](https://github.com/bspeagle/g-cal-tools) - Google Calendar integration library
 - Google Calendar API credentials ([Setup Guide](https://developers.google.com/calendar/api/quickstart/python))
 - Virtual environment (recommended)
 
 ### Installation
 
 ```bash
-# Clone the repository
+# Clone g-cal-tools (required dependency)
+cd ~/Projects  # or your preferred directory
+git clone https://github.com/bspeagle/g-cal-tools.git
+
+# Clone pill_manager as a sibling directory
 git clone https://github.com/yourusername/pill_manager.git
 cd pill_manager
 
@@ -296,7 +301,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments 🙏
 
 - Built with [Rich](https://github.com/Textualize/rich) for beautiful terminal UI
-- Integrates with [g-cal-tools](https://github.com/yourusername/g-cal-tools) for Google Calendar operations
+- Integrates with [g-cal-tools](https://github.com/bspeagle/g-cal-tools) for Google Calendar operations
 - Inspired by the complexity of managing controlled substances in split custody arrangements
 
 ---
