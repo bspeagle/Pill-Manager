@@ -102,10 +102,20 @@ def show_status(calendar_id: str):
                 after_date = dist['mother_out_date']
                 next_mom_day = custody.get_next_mother_custody_day(after_date)
                 
-                # Calculate distribution for next 30 days from refill
+                # Determine distribution period start date
+                # If we have pills with father, use current fill date
+                # If we're out, use next refill date
+                fill = status['fill']
                 refill_date = refill['eligible_date']
-                distribution_start = refill_date
-                distribution_end = refill_date + timedelta(days=30)
+                
+                if dist['pills_with_father'] > 0:
+                    # Still have pills from current fill, calculate from fill date
+                    distribution_start = fill['date']
+                else:
+                    # Out of pills, need to refill first
+                    distribution_start = refill_date
+                
+                distribution_end = distribution_start + timedelta(days=30)
                 
                 distribution = custody.get_pill_distribution(distribution_start, distribution_end)
                 
@@ -165,15 +175,26 @@ def sync_calendar(calendar_id: str):
     
     dist = status['distribution']
     refill = status['refill']
+    fill = status['fill']
     
     # Calculate next distribution
     try:
         after_date = dist['mother_out_date']
         next_mom_day = custody.get_next_mother_custody_day(after_date)
         
+        # Determine distribution period start date
+        # If we have pills with father, use current fill date
+        # If we're out, use next refill date
         refill_date = refill['eligible_date']
-        distribution_start = refill_date
-        distribution_end = refill_date + timedelta(days=30)
+        
+        if dist['pills_with_father'] > 0:
+            # Still have pills from current fill, calculate from fill date
+            distribution_start = fill['date']
+        else:
+            # Out of pills, need to refill first
+            distribution_start = refill_date
+        
+        distribution_end = distribution_start + timedelta(days=30)
         
         distribution = custody.get_pill_distribution(distribution_start, distribution_end)
         
