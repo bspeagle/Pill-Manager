@@ -233,5 +233,11 @@ class CustodyReader:
         # The last pill will be used on the Nth mother custody day
         last_pill_day = mother_days_forward[pills_given - 1]
         
-        # She runs out the day after her last pill day
-        return last_pill_day + timedelta(days=1)
+        # She "runs out" on the NEXT day she needs a pill but doesn't have one
+        # That's her next custody day after using the last pill
+        if len(mother_days_forward) > pills_given:
+            # She has another custody day after the last pill
+            return mother_days_forward[pills_given]  # This is when she'd be short
+        else:
+            # No more custody days in our search window, return day after last pill
+            return last_pill_day + timedelta(days=1)
