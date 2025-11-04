@@ -249,18 +249,23 @@ def sync_calendar(calendar_id: str):
     # Create events
     console.print("\n[yellow]Creating events...[/yellow]")
     
-    # For the distribution event, use the period for the NEXT distribution
-    # (when those pills will actually be used), not the current period
-    next_period_start = refill_date
-    next_period_end = refill_date + timedelta(days=30)
+    # For the distribution event, show when those specific pills will be used
+    # Period starts from her next pill day after receiving them
+    next_pill_day_after_dist = custody.get_next_mother_custody_day(next_dist['distribution_date'])
+    
+    # Calculate when she'll run out of those pills
+    pills_run_out = custody.calculate_mother_run_out_date(
+        next_pill_day_after_dist,
+        next_dist['pills_to_give']
+    )
     
     results = event_creator.create_all_events(
         mom_out_date=dist['mother_out_date'],
         refill_date=refill_date,
         distribution_date=next_dist['distribution_date'],
         pills_to_give=next_dist['pills_to_give'],
-        period_start=next_period_start,
-        period_end=next_period_end
+        period_start=next_pill_day_after_dist,
+        period_end=pills_run_out
     )
     
     # Show results
