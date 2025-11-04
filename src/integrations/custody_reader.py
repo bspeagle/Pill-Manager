@@ -190,3 +190,48 @@ class CustodyReader:
         
         # Shouldn't reach here if pattern is correct
         raise ValueError(f"No mother custody day found after {after_date}")
+    
+    def calculate_mother_run_out_date(
+        self,
+        distribution_date: date,
+        pills_given: int
+    ) -> date:
+        """
+        Calculate when mother runs out of pills based on actual custody schedule.
+        
+        Counts forward through mother's custody days (pill days) to find when
+        she uses her last pill.
+        
+        Args:
+            distribution_date: Date pills were given to mother
+            pills_given: Number of pills given
+            
+        Returns:
+            Date mother runs out (day after her last pill day)
+        """
+        if pills_given <= 0:
+            return distribution_date
+        
+        # Search up to 60 days ahead to ensure we find enough custody days
+        search_end = distribution_date + timedelta(days=60)
+        
+        # Get mother's custody days starting from distribution date
+        father_days, mother_days = self.get_pill_days(distribution_date, search_end)
+        
+        # Filter to only days >= distribution_date
+        mother_days_forward = [day for day in mother_days if day >= distribution_date]
+        
+        if len(mother_days_forward) < pills_given:
+            # If we don't have enough days in our search window, extend it
+            search_end = distribution_date + timedelta(days=120)
+            father_days, mother_days = self.get_pill_days(distribution_date, search_end)
+            mother_days_forward = [day for day in mother_days if day >= distribution_date]
+        
+        if len(mother_days_forward) < pills_given:
+            raise ValueError(f"Not enough mother custody days found to account for {pills_given} pills")
+        
+        # The last pill will be used on the Nth mother custody day
+        last_pill_day = mother_days_forward[pills_given - 1]
+        
+        # She runs out the day after her last pill day
+        return last_pill_day + timedelta(days=1)

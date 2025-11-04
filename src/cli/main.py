@@ -73,6 +73,20 @@ def show_status(calendar_id: str):
     # Display distribution status if exists
     if 'distribution' in status:
         dist = status['distribution']
+        
+        # Calculate ACCURATE run-out date using custody schedule
+        try:
+            accurate_out_date = custody.calculate_mother_run_out_date(
+                dist['date'],
+                dist['quantity']
+            )
+            dist['mother_out_date'] = accurate_out_date
+            dist['days_until_out'] = (accurate_out_date - date.today()).days
+            dist['is_out'] = date.today() >= accurate_out_date
+        except Exception as e:
+            # Fall back to simple calculation if custody lookup fails
+            console.print(f"[yellow]⚠️  Using approximate run-out date (custody lookup failed)[/yellow]\n")
+        
         console.print("[bold]👤 Ex-Wife Status[/bold]")
         console.print(f"  Last Distribution: {dist['date'].strftime('%B %d, %Y')} ({dist['quantity']} pills)")
         console.print(f"  Total Distributed: {dist['total_distributed']} pills")
@@ -176,6 +190,17 @@ def sync_calendar(calendar_id: str):
     dist = status['distribution']
     refill = status['refill']
     fill = status['fill']
+    
+    # Calculate ACCURATE run-out date using custody schedule
+    try:
+        accurate_out_date = custody.calculate_mother_run_out_date(
+            dist['date'],
+            dist['quantity']
+        )
+        dist['mother_out_date'] = accurate_out_date
+    except Exception as e:
+        # Fall back to simple calculation if custody lookup fails
+        console.print(f"[yellow]⚠️  Using approximate run-out date (custody lookup failed)[/yellow]\n")
     
     # Calculate next distribution
     try:
