@@ -16,6 +16,14 @@
 
 **Pill Manager** is a Python application with both a **90s hacker-themed web dashboard** and **CLI interface** designed to manage ADHD medication distribution between co-parents in split custody arrangements. It automatically calculates refill eligibility based on insurance rules (85% threshold), tracks pill distribution, and creates Google Calendar reminders for critical dates.
 
+### 🏴‍☠️ PILL TERMINAL 9000
+
+<div align="center">
+<img src="docs/images/header.png" alt="PILL TERMINAL 9000" width="800"/>
+
+*90s hacker terminal aesthetic meets modern medication tracking*
+</div>
+
 **Why This Exists:**
 - Managing Schedule II controlled substances with split custody is complex
 - Insurance companies enforce strict refill timing (85% rule for controlled substances)
