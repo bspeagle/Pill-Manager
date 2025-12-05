@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if error %}
+<div class="alert danger">
+    ⚠️  ERROR: {{ error }}
+</div>
+{% endif %}
+
+<!-- Prescription Fills -->
+<div class="terminal-window">
+    <h2>>> PRESCRIPTION FILL HISTORY</h2>
+    
+    {% if fills %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>DATE</th>
+                <th>QUANTITY</th>
+                <th>PHARMACY</th>
+                <th>RX NUMBER</th>
+                <th>ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fill in fills %}
+            <tr>
+                <td>{{ fill.id }}</td>
+                <td>{{ fill.fill_date }}</td>
+                <td>{{ fill.quantity }} pills</td>
+                <td>{{ fill.pharmacy }}</td>
+                <td>{{ fill.prescription_number }}</td>
+                <td><a href="/fill/edit/{{ fill.id }}" style="color: var(--info-cyan);">✎ EDIT</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No prescription fills recorded yet.</p>
+    {% endif %}
+</div>
+
+<!-- Distributions -->
+<div class="terminal-window">
+    <h2>>> DISTRIBUTION HISTORY</h2>
+    
+    {% if distributions %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>DATE</th>
+                <th>QUANTITY</th>
+                <th>FILL ID</th>
+                <th>NOTES</th>
+                <th>ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dist in distributions %}
+            <tr>
+                <td>{{ dist.id }}</td>
+                <td>{{ dist.distribution_date }}</td>
+                <td>{{ dist.quantity }} pills</td>
+                <td>{{ dist.fill_id }}</td>
+                <td>{{ dist.notes or '-' }}</td>
+                <td><a href="/distribution/edit/{{ dist.id }}" style="color: var(--info-cyan);">✎ EDIT</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No distributions recorded yet.</p>
+    {% endif %}
+</div>
+
+<div class="button-group">
+    <a href="/" class="button">⬅ BACK TO DASHBOARD</a>
+    <a href="/fill/new" class="button">📝 NEW FILL</a>
+    <a href="/distribution/new" class="button">💊 NEW DISTRIBUTION</a>
+</div>
+
+{% endblock %}

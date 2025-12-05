@@ -2,6 +2,9 @@
 rich>=13.7.0
 click>=8.1.7
 
+# Web Interface
+Flask>=3.0.0
+
 # Google Calendar API (for g-cal-tools integration)
 google-api-python-client>=2.100.0
 google-auth-httplib2>=0.1.1

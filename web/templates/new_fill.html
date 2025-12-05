@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="terminal-window">
+    <h2>>> RECORD NEW PRESCRIPTION FILL</h2>
+    
+    {% if error %}
+    <div class="alert danger">
+        ⚠️  ERROR: {{ error }}
+    </div>
+    {% endif %}
+    
+    <form method="POST" action="/fill/new">
+        <div class="form-group">
+            <label for="fill_date">FILL DATE:</label>
+            <input type="date" id="fill_date" name="fill_date" value="{{ today }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="quantity">QUANTITY (pills):</label>
+            <input type="number" id="quantity" name="quantity" value="30" min="1" max="120" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="pharmacy">PHARMACY:</label>
+            <input type="text" id="pharmacy" name="pharmacy" value="{{ default_pharmacy }}" placeholder="e.g., Publix #1250" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="rx_number">RX NUMBER:</label>
+            <input type="text" id="rx_number" name="rx_number" placeholder="e.g., #15013721" required>
+        </div>
+        
+        <div class="button-group">
+            <input type="submit" value="💾 SAVE FILL">
+            <a href="/" class="button">❌ CANCEL</a>
+        </div>
+    </form>
+</div>
+
+<div class="terminal-window">
+    <h3>>> INSTRUCTIONS</h3>
+    <p>• Fill Date: Date prescription was filled (not picked up)</p>
+    <p>• Quantity: Number of pills (typically 30, 60, or 90)</p>
+    <p>• Pharmacy: Name and location of pharmacy</p>
+    <p>• Rx Number: Prescription number from bottle</p>
+</div>
+
+{% endblock %}

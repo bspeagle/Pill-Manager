@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="terminal-window">
+    <h2>>> EDIT DISTRIBUTION #{{ distribution.id }}</h2>
+    
+    {% if error %}
+    <div class="alert danger">
+        ⚠️  ERROR: {{ error }}
+    </div>
+    {% endif %}
+    
+    <form method="POST" action="/distribution/edit/{{ distribution.id }}">
+        <div class="form-group">
+            <label for="fill_id">ASSOCIATED FILL:</label>
+            <select id="fill_id" name="fill_id" required>
+                {% if fills %}
+                    {% for fill in fills %}
+                        <option value="{{ fill.id }}" {% if fill.id == distribution.fill_id %}selected{% endif %}>
+                            Fill #{{ fill.id }} - {{ fill.fill_date }} ({{ fill.quantity }} pills) - {{ fill.pharmacy }}
+                        </option>
+                    {% endfor %}
+                {% else %}
+                    <option value="">No fills found</option>
+                {% endif %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="dist_date">DISTRIBUTION DATE:</label>
+            <input type="date" id="dist_date" name="dist_date" value="{{ distribution.distribution_date }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="quantity">QUANTITY (pills given):</label>
+            <input type="number" id="quantity" name="quantity" value="{{ distribution.quantity }}" min="1" max="90" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="notes">NOTES (optional):</label>
+            <textarea id="notes" name="notes" rows="3" placeholder="e.g., Extra pills for weekend, Distribution for Dec 9-27 period">{{ distribution.notes or '' }}</textarea>
+        </div>
+        
+        <div class="button-group">
+            <input type="submit" value="💾 SAVE CHANGES">
+            <a href="/history" class="button">❌ CANCEL</a>
+        </div>
+    </form>
+</div>
+
+<div class="terminal-window">
+    <h3>>> EDIT INSTRUCTIONS</h3>
+    <p>• Distribution ID: {{ distribution.id }}</p>
+    <p>• Created: {{ distribution.created_at }}</p>
+    <p>• Modify any field and click SAVE CHANGES</p>
+    <p>⚠️  Warning: Editing this distribution may affect calculations</p>
+</div>
+
+{% endblock %}

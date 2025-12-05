@@ -172,6 +172,53 @@ class PillDatabase:
             """, (limit,))
             return [dict(row) for row in cursor.fetchall()]
     
+    def get_fill_by_id(self, fill_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Get a specific prescription fill by ID.
+        
+        Args:
+            fill_id: ID of the fill record
+            
+        Returns:
+            Dictionary with fill data or None if not found
+        """
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT * FROM prescription_fills WHERE id = ?
+            """, (fill_id,))
+            row = cursor.fetchone()
+            return dict(row) if row else None
+    
+    def update_fill(
+        self,
+        fill_id: int,
+        fill_date: date,
+        quantity: int,
+        prescription_number: Optional[str] = None,
+        pharmacy: Optional[str] = None,
+        notes: Optional[str] = None
+    ):
+        """
+        Update an existing prescription fill.
+        
+        Args:
+            fill_id: ID of fill to update
+            fill_date: Date prescription was filled
+            quantity: Number of pills
+            prescription_number: Prescription/Rx number
+            pharmacy: Pharmacy name
+            notes: Additional notes
+        """
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE prescription_fills
+                SET fill_date = ?, quantity = ?, prescription_number = ?,
+                    pharmacy = ?, notes = ?
+                WHERE id = ?
+            """, (fill_date, quantity, prescription_number, pharmacy, notes, fill_id))
+    
     # ============================================
     # Distribution Operations
     # ============================================
@@ -241,6 +288,50 @@ class PillDatabase:
                 LIMIT ?
             """, (limit,))
             return [dict(row) for row in cursor.fetchall()]
+    
+    def get_distribution_by_id(self, distribution_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Get a specific distribution by ID.
+        
+        Args:
+            distribution_id: ID of the distribution record
+            
+        Returns:
+            Dictionary with distribution data or None if not found
+        """
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT * FROM distributions WHERE id = ?
+            """, (distribution_id,))
+            row = cursor.fetchone()
+            return dict(row) if row else None
+    
+    def update_distribution(
+        self,
+        distribution_id: int,
+        distribution_date: date,
+        quantity: int,
+        fill_id: Optional[int] = None,
+        notes: Optional[str] = None
+    ):
+        """
+        Update an existing distribution.
+        
+        Args:
+            distribution_id: ID of distribution to update
+            distribution_date: Date pills were given
+            quantity: Number of pills given
+            fill_id: Associated fill record ID
+            notes: Additional notes
+        """
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE distributions
+                SET distribution_date = ?, quantity = ?, fill_id = ?, notes = ?
+                WHERE id = ?
+            """, (distribution_date, quantity, fill_id, notes, distribution_id))
     
     # ============================================
     # Calendar Event Tracking

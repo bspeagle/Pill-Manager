@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="terminal-window">
+    <h2>>> EDIT PRESCRIPTION FILL #{{ fill.id }}</h2>
+    
+    {% if error %}
+    <div class="alert danger">
+        ⚠️  ERROR: {{ error }}
+    </div>
+    {% endif %}
+    
+    <form method="POST" action="/fill/edit/{{ fill.id }}">
+        <div class="form-group">
+            <label for="fill_date">FILL DATE:</label>
+            <input type="date" id="fill_date" name="fill_date" value="{{ fill.fill_date }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="quantity">QUANTITY (pills):</label>
+            <input type="number" id="quantity" name="quantity" value="{{ fill.quantity }}" min="1" max="120" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="pharmacy">PHARMACY:</label>
+            <input type="text" id="pharmacy" name="pharmacy" value="{{ fill.pharmacy }}" placeholder="e.g., Publix #1250" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="rx_number">RX NUMBER:</label>
+            <input type="text" id="rx_number" name="rx_number" value="{{ fill.prescription_number }}" placeholder="e.g., #15013721" required>
+        </div>
+        
+        <div class="button-group">
+            <input type="submit" value="💾 SAVE CHANGES">
+            <a href="/history" class="button">❌ CANCEL</a>
+        </div>
+    </form>
+</div>
+
+<div class="terminal-window">
+    <h3>>> EDIT INSTRUCTIONS</h3>
+    <p>• Fill ID: {{ fill.id }}</p>
+    <p>• Created: {{ fill.created_at }}</p>
+    <p>• Modify any field and click SAVE CHANGES</p>
+    <p>⚠️  Warning: Editing this fill may affect calculations</p>
+</div>
+
+{% endblock %}

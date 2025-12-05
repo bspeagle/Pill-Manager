@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="terminal-window">
+    <h2>>> RECORD PILL DISTRIBUTION</h2>
+    
+    {% if error %}
+    <div class="alert danger">
+        ⚠️  ERROR: {{ error }}
+    </div>
+    {% endif %}
+    
+    <form method="POST" action="/distribution/new">
+        <div class="form-group">
+            <label for="fill_id">ASSOCIATED FILL:</label>
+            <select id="fill_id" name="fill_id" required>
+                {% if fills %}
+                    {% for fill in fills %}
+                        <option value="{{ fill.id }}" {% if loop.first %}selected{% endif %}>
+                            Fill #{{ fill.id }} - {{ fill.fill_date }} ({{ fill.quantity }} pills) - {{ fill.pharmacy }}
+                        </option>
+                    {% endfor %}
+                {% else %}
+                    <option value="">No fills found</option>
+                {% endif %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="dist_date">DISTRIBUTION DATE:</label>
+            <input type="date" id="dist_date" name="dist_date" value="{{ today }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="quantity">QUANTITY (pills given):</label>
+            <input type="number" id="quantity" name="quantity" 
+                   value="{% if suggested_quantity %}{{ suggested_quantity }}{% endif %}" 
+                   min="1" max="90" required>
+            {% if suggested_quantity %}
+            <small style="color: var(--info-cyan);">✓ Suggested quantity based on custody schedule</small>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="notes">NOTES (optional):</label>
+            <textarea id="notes" name="notes" rows="3" placeholder="e.g., Extra pills for weekend, Distribution for Dec 9-27 period">{% if suggested_notes %}{{ suggested_notes }}{% endif %}</textarea>
+            {% if suggested_notes %}
+            <small style="color: var(--info-cyan);">✓ Auto-populated with custody period</small>
+            {% endif %}
+        </div>
+        
+        <div class="button-group">
+            <input type="submit" value="💾 SAVE DISTRIBUTION">
+            <a href="/" class="button">❌ CANCEL</a>
+        </div>
+    </form>
+</div>
+
+<div class="terminal-window">
+    <h3>>> INSTRUCTIONS</h3>
+    <p>• Associated Fill: Select which prescription this distribution came from</p>
+    <p>• Distribution Date: Date you gave pills to ex-wife</p>
+    <p>• Quantity: Number of pills given (auto-calculated if possible)</p>
+    <p>• Notes: Optional details (auto-populated with custody period)
+</div>
+
+{% endblock %}

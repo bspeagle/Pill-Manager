@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="terminal-window">
+    <h2>>> CALENDAR EVENT SYNC</h2>
+    
+    <div id="sync-status"></div>
+    
+    <div id="sync-output" style="min-height: 200px; margin: 20px 0; padding: 10px; border: 1px solid var(--terminal-green); display: none;">
+        <div id="sync-log"></div>
+    </div>
+    
+    <div class="button-group">
+        <button id="sync-btn" onclick="syncCalendar()" class="button">📅 SYNC CALENDAR EVENTS</button>
+        <a href="/" class="button">⬅ BACK TO DASHBOARD</a>
+    </div>
+</div>
+
+<div class="terminal-window">
+    <h3>>> WHAT THIS DOES</h3>
+    <p>Creates 3 calendar events based on current status:</p>
+    <p>• 💊 Ex Out of Meds - When she uses her last pill</p>
+    <p>• 💊 Can Refill Prescription - When eligible to refill (85% rule)</p>
+    <p>• 💊 Give X Pills to Ex - Next distribution date and quantity</p>
+    <br>
+    <p>All events are tagged with [ADHD-PILLS] for easy searching.</p>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function addLog(message, type = 'info') {
+    const logDiv = document.getElementById('sync-log');
+    const timestamp = new Date().toLocaleTimeString();
+    let prefix = '>';
+    
+    if (type === 'error') prefix = '⚠️';
+    if (type === 'success') prefix = '✓';
+    if (type === 'processing') prefix = '⚡';
+    
+    logDiv.innerHTML += `<div>[${timestamp}] ${prefix} ${message}</div>`;
+    logDiv.scrollTop = logDiv.scrollHeight;
+}
+
+function syncCalendar() {
+    const btn = document.getElementById('sync-btn');
+    const output = document.getElementById('sync-output');
+    const logDiv = document.getElementById('sync-log');
+    
+    // Disable button
+    btn.disabled = true;
+    btn.textContent = '⚡ SYNCING...';
+    
+    // Show output
+    output.style.display = 'block';
+    logDiv.innerHTML = '';
+    
+    addLog('Initializing calendar sync...', 'processing');
+    addLog('Connecting to Google Calendar API...', 'processing');
+    
+    setTimeout(() => {
+        addLog('Calculating distribution dates...', 'processing');
+    }, 500);
+    
+    setTimeout(() => {
+        addLog('Reading custody schedule...', 'processing');
+    }, 1000);
+    
+    setTimeout(() => {
+        addLog('Preparing event data...', 'processing');
+    }, 1500);
+    
+    // Make AJAX request
+    setTimeout(() => {
+        fetch('/calendar/sync', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                addLog('Creating calendar events...', 'processing');
+                
+                setTimeout(() => {
+                    addLog('✅ SYNC COMPLETE!', 'success');
+                    addLog('', 'info');
+                    addLog('Events created:', 'success');
+                    
+                    data.created.forEach(event => {
+                        addLog(`  • ${event.summary} - ${event.date}`, 'success');
+                    });
+                    
+                    btn.textContent = '✅ SYNC COMPLETE';
+                    
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 3000);
+                }, 500);
+            } else {
+                addLog('❌ SYNC FAILED: ' + data.error, 'error');
+                btn.disabled = false;
+                btn.textContent = '🔄 RETRY SYNC';
+            }
+        })
+        .catch(error => {
+            addLog('❌ CONNECTION ERROR: ' + error, 'error');
+            btn.disabled = false;
+            btn.textContent = '🔄 RETRY SYNC';
+        });
+    }, 2000);
+}
+</script>
+{% endblock %}

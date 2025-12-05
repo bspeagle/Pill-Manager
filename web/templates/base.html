@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏴‍☠️ PILL TERMINAL 9000</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- ASCII Art Header -->
+        <div class="header">
+            <div class="ascii-art">
+╔═══════════════════════════════════════════════════════╗
+║  ██████╗ ██╗██╗     ██╗         ████████╗███████╗██████╗ ███╗   ███╗██╗███╗   ██╗ █████╗ ██╗          ║
+║  ██╔══██╗██║██║     ██║         ╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗██║          ║
+║  ██████╔╝██║██║     ██║            ██║   █████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║███████║██║          ║
+║  ██╔═══╝ ██║██║     ██║            ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██╔══██║██║          ║
+║  ██║     ██║███████╗███████╗       ██║   ███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██║  ██║███████╗     ║
+║  ╚═╝     ╚═╝╚══════╝╚══════╝       ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝     ║
+╚═══════════════════════════════════════════════════════╝
+            </div>
+            <h1>🏴‍☠️ PILL TERMINAL 9000 💊</h1>
+            <div class="subtitle">>> ADHD MEDICATION TRACKING SYSTEM <<</div>
+            <div class="subtitle">>>> SPLIT CUSTODY MANAGEMENT <<<</div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <a href="/" {% if request.path == '/' %}class="active"{% endif %}>
+                [HOME]
+            </a>
+            <a href="/fill/new" {% if request.path == '/fill/new' %}class="active"{% endif %}>
+                [NEW FILL]
+            </a>
+            <a href="/distribution/new" {% if request.path == '/distribution/new' %}class="active"{% endif %}>
+                [DISTRIBUTE]
+            </a>
+            <a href="/calendar/sync" {% if request.path == '/calendar/sync' %}class="active"{% endif %}>
+                [SYNC CALENDAR]
+            </a>
+            <a href="/history" {% if request.path == '/history' %}class="active"{% endif %}>
+                [HISTORY]
+            </a>
+        </nav>
+
+        <!-- Main Content -->
+        {% block content %}{% endblock %}
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="ascii-art">
+    ⚡ ⚡ ⚡
+   🏴‍☠️ BEEPBOOP SYSTEMS 🏴‍☠️
+    ⚓ A TREASURE WELL TRACKED IS NEVER LOST ⚓
+            </div>
+            <p>PILL TERMINAL 9000 v1.0.0 | SYSTEM TIME: <span id="system-time"></span><span class="cursor">█</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Update system time
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+            const dateStr = now.toLocaleDateString('en-US');
+            document.getElementById('system-time').textContent = `${dateStr} ${timeStr}`;
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

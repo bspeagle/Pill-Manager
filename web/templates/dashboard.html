@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if error %}
+<div class="alert danger">
+    ⚠️  SYSTEM ERROR: {{ error }}
+</div>
+{% endif %}
+
+{% if status and status.has_data %}
+
+<!-- Status Grid -->
+<div class="status-grid">
+    <!-- Last Fill -->
+    <div class="status-card">
+        <h3>📋 LAST FILL</h3>
+        <div class="label">Date:</div>
+        <div class="value success">{{ status.fill.date.strftime('%B %d, %Y') }}</div>
+        <div class="label">Quantity:</div>
+        <div class="value success">{{ status.fill.quantity }} pills</div>
+        <div class="label">Pharmacy:</div>
+        <div class="value success">{{ status.fill.pharmacy }}</div>
+        <div class="label">Rx Number:</div>
+        <div class="value success">{{ status.fill.prescription_number }}</div>
+        <div class="label">Days Ago:</div>
+        <div class="value success">{{ status.fill.days_ago }} days</div>
+    </div>
+
+    <!-- Refill Status -->
+    <div class="status-card">
+        <h3>🔄 REFILL STATUS</h3>
+        <div class="label">Eligible Date:</div>
+        <div class="value {% if status.refill.can_refill %}success{% elif status.refill.days_until <= 3 %}warning{% endif %}">
+            {{ status.refill.eligible_date.strftime('%B %d, %Y') }}
+        </div>
+        <div class="label">Status:</div>
+        <div class="value {% if status.refill.can_refill %}success{% elif status.refill.days_until <= 3 %}warning{% endif %}">
+            {% if status.refill.can_refill %}
+                ✅ CAN REFILL NOW!
+            {% elif status.refill.days_until <= 3 %}
+                ⏰ {{ status.refill.days_until }} DAYS UNTIL ELIGIBLE
+            {% else %}
+                ⏳ {{ status.refill.days_until }} DAYS UNTIL ELIGIBLE
+            {% endif %}
+        </div>
+    </div>
+
+    {% if status.distribution %}
+    <!-- Distribution Status -->
+    <div class="status-card">
+        <h3>👤 EX-WIFE STATUS</h3>
+        <div class="label">Last Distribution:</div>
+        <div class="value success">
+            {{ status.distribution.date.strftime('%B %d, %Y') }}<br>
+            ({{ status.distribution.quantity }} pills)
+        </div>
+        <div class="label">Total Distributed:</div>
+        <div class="value success">{{ status.distribution.total_distributed }} pills</div>
+        <div class="label">Runs Out:</div>
+        <div class="value {% if status.distribution.is_out %}danger{% elif status.distribution.days_until_out <= 3 %}warning{% else %}success{% endif %}">
+            {{ status.distribution.mother_out_date.strftime('%B %d, %Y') }}
+        </div>
+        <div class="label">Status:</div>
+        <div class="value {% if status.distribution.is_out %}danger{% elif status.distribution.days_until_out <= 3 %}warning{% else %}success{% endif %}">
+            {% if status.distribution.is_out %}
+                🚨 OUT OF PILLS!
+            {% elif status.distribution.days_until_out == 0 %}
+                ⚠️  RUNS OUT TODAY!
+            {% elif status.distribution.days_until_out == 1 %}
+                ⚠️  RUNS OUT TOMORROW!
+            {% elif status.distribution.days_until_out <= 3 %}
+                ⏰ RUNS OUT IN {{ status.distribution.days_until_out }} DAYS
+            {% else %}
+                ✓ {{ status.distribution.days_until_out }} DAYS REMAINING
+            {% endif %}
+        </div>
+        <div class="label">Pills with Father:</div>
+        <div class="value success">{{ status.distribution.pills_with_father }} pills</div>
+    </div>
+    {% endif %}
+</div>
+
+{% if next_distribution %}
+<!-- Next Distribution Info -->
+<div class="terminal-window">
+    <h2>>> NEXT DISTRIBUTION</h2>
+    <div class="status-card">
+        <div class="label">Give Pills On:</div>
+        <div class="value {% if next_distribution.days_until <= 2 %}warning{% else %}success{% endif %}">
+            {{ next_distribution.date.strftime('%B %d, %Y') }}
+        </div>
+        <div class="label">Quantity:</div>
+        <div class="value success">{{ next_distribution.quantity }} pills</div>
+        <div class="label">Days Until:</div>
+        <div class="value {% if next_distribution.days_until <= 2 %}warning{% else %}success{% endif %}">
+            {% if next_distribution.days_until == 0 %}
+                TODAY!
+            {% elif next_distribution.days_until == 1 %}
+                TOMORROW!
+            {% else %}
+                {{ next_distribution.days_until }} days
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Action Buttons -->
+<div class="terminal-window">
+    <h2>>> QUICK ACTIONS</h2>
+    <div class="button-group">
+        <a href="/fill/new" class="button">📝 RECORD NEW FILL</a>
+        <a href="/distribution/new" class="button">💊 RECORD DISTRIBUTION</a>
+        <a href="/calendar/sync" class="button">📅 SYNC CALENDAR</a>
+        <a href="/history" class="button">📜 VIEW HISTORY</a>
+    </div>
+</div>
+
+{% if status.distribution and (status.distribution.is_out or status.distribution.days_until_out <= 2) %}
+<div class="alert {% if status.distribution.is_out %}danger{% else %}warning{% endif %}">
+    🎯 ACTION REQUIRED: {% if status.distribution.is_out %}Mother is OUT of pills!{% else %}Mother running low on pills!{% endif %}
+    {% if status.refill.can_refill %}
+    <br>✅ You can refill NOW!
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="terminal-window">
+    <h2>>> SYSTEM INITIALIZATION REQUIRED</h2>
+    <p>No data found in system. Please initialize by recording your first prescription fill.</p>
+    <div class="button-group">
+        <a href="/fill/new" class="button">📝 RECORD FIRST FILL</a>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
