@@ -3,6 +3,7 @@
 <div align="center">
 
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB.svg?style=for-the-badge&logo=python&logoColor=white)](https://python.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.0+-000000.svg?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-003B57.svg?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Google Calendar](https://img.shields.io/badge/Google%20Calendar-4285F4.svg?style=for-the-badge&logo=google-calendar&logoColor=white)](https://calendar.google.com/)
 [![Rich](https://img.shields.io/badge/Rich-CLI-000000.svg?style=for-the-badge)](https://github.com/Textualize/rich)
@@ -13,7 +14,7 @@
 
 ## Overview 🎯
 
-**Pill Manager** is a Python CLI tool designed to manage ADHD medication distribution between co-parents in split custody arrangements. It automatically calculates refill eligibility based on insurance rules (85% threshold), tracks pill distribution, and creates Google Calendar reminders for critical dates.
+**Pill Manager** is a Python application with both a **90s hacker-themed web dashboard** and **CLI interface** designed to manage ADHD medication distribution between co-parents in split custody arrangements. It automatically calculates refill eligibility based on insurance rules (85% threshold), tracks pill distribution, and creates Google Calendar reminders for critical dates.
 
 **Why This Exists:**
 - Managing Schedule II controlled substances with split custody is complex
@@ -27,6 +28,16 @@
 
 ## Features ✨
 
+### 🌐 Web Dashboard (PILL TERMINAL 9000)
+- **🎨 90s Hacker Aesthetic**: Green phosphor terminal, CRT scanlines, ASCII art, VT323 font
+- **📊 Real-Time Status**: Live dashboard with pill counts, refill dates, distribution tracking
+- **📝 Smart Forms**: Auto-populated fields based on custody schedule calculations
+- **✏️ Edit Records**: Modify existing fills and distributions
+- **📅 One-Click Calendar Sync**: Create Google Calendar events with animated terminal output
+- **📜 Complete History**: View and edit all past fills and distributions
+- **🏠 Local-Only**: Runs on localhost for privacy and security
+
+### 💻 CLI Interface
 - **📅 Smart Refill Calculations**: Automatically calculates refill eligibility using the 85% rule (Day 26 for 30-day supply)
 - **👥 Custody-Aware Distribution**: Integrates with Google Calendar to parse custody schedules and calculate pill days
 - **💊 Accurate Tracking**: Tracks multiple distributions per fill with clean accounting
@@ -41,21 +52,25 @@
 
 ```mermaid
 graph TD
-    A[👤 User CLI] --> B[💾 SQLite Database]
-    A --> C[🗓️ Google Calendar API]
+    A[👤 User - CLI] --> G[🧮 Core Logic]
+    W[🌐 Web Dashboard] --> G
+    
+    G --> B[💾 SQLite Database]
+    G --> C[🗓️ Google Calendar API]
     
     B --> D[📋 Fills Tracker]
     B --> E[📦 Distributions Tracker]
     
     C --> F[📅 Custody Reader]
-    F --> G[🧮 Calculator]
+    F --> G
     
-    G --> H[📊 Status Dashboard]
+    G --> H[📊 Status Calculator]
     G --> I[🔔 Event Creator]
     
     I --> C
     
     style A fill:#4285F4,stroke:#fff,stroke-width:2px,color:#fff
+    style W fill:#00ff00,stroke:#000,stroke-width:2px,color:#000
     style B fill:#003B57,stroke:#fff,stroke-width:2px,color:#fff
     style C fill:#0F9D58,stroke:#fff,stroke-width:2px,color:#fff
     style G fill:#F4B400,stroke:#fff,stroke-width:2px
@@ -66,11 +81,12 @@ graph TD
 
 | Component | Description |
 |-----------|-------------|
+| 🌐 **Web Dashboard** | Flask-powered web interface with 90s hacker terminal theme |
+| 💻 **CLI** | Rich-powered terminal interface with status dashboard |
 | 🗄️ **Database** | SQLite storage for prescription fills, distributions, and settings |
 | 🧮 **Calculator** | Implements 85% refill rule and distribution logic |
 | 📅 **Custody Reader** | Parses Google Calendar events to determine custody days |
 | 🔔 **Event Creator** | Generates Google Calendar reminders with custom colors and alerts |
-| 💻 **CLI** | Rich-powered terminal interface with status dashboard |
 
 ---
 
@@ -128,7 +144,28 @@ cp .env.example .env
 
 ## Usage 📖
 
-### Show Current Status
+### 🌐 Web Dashboard (Recommended)
+
+**Start the server:**
+```bash
+python web/app.py
+```
+
+Open your browser to **http://localhost:5001**
+
+**Features:**
+- 📊 Real-time dashboard with all status info
+- 📝 Record new fills with pre-populated pharmacy
+- 💊 Record distributions with auto-calculated quantities
+- 📅 One-click calendar sync with animated output
+- 📜 View and edit history
+- 🎨 Glorious 90s hacker terminal aesthetic
+
+---
+
+### 💻 CLI Interface
+
+#### Show Current Status
 
 ```bash
 python src/cli/main.py status
@@ -217,6 +254,20 @@ pill_manager/
 │   │   └── calendar_events.py   # Event creator
 │   └── cli/
 │       └── main.py              # CLI interface
+├── web/
+│   ├── app.py                   # Flask web application
+│   ├── static/
+│   │   └── css/
+│   │       └── terminal.css     # 90s hacker theme
+│   └── templates/
+│       ├── base.html            # Base template
+│       ├── dashboard.html       # Main dashboard
+│       ├── new_fill.html        # Record fill form
+│       ├── new_distribution.html # Record distribution form
+│       ├── edit_fill.html       # Edit fill form
+│       ├── edit_distribution.html # Edit distribution form
+│       ├── sync_calendar.html   # Calendar sync page
+│       └── history.html         # History view
 ├── scripts/
 │   ├── list_calendars.py        # Find calendar IDs
 │   └── seed_database.py         # Initial data setup
@@ -235,6 +286,7 @@ pill_manager/
 |----------|-------------|---------|
 | `GOOGLE_CALENDAR_CUSTODY_ID` | Calendar ID for custody schedule | `abc123@group.calendar.google.com` |
 | `DEFAULT_PILL_QUANTITY` | Default pills per prescription | `30` |
+| `DEFAULT_PHARMACY` | Default pharmacy name (pre-populates forms) | `Publix #1250` |
 | `REFILL_THRESHOLD_PERCENTAGE` | Insurance refill threshold | `85` |
 | `DATABASE_PATH` | Path to SQLite database | `data/pill_manager.db` |
 
@@ -300,17 +352,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments 🙏
 
-- Built with [Rich](https://github.com/Textualize/rich) for beautiful terminal UI
+- Built with [Flask](https://flask.palletsprojects.com/) for the web dashboard
+- Built with [Rich](https://github.com/Textualize/rich) for beautiful CLI terminal UI
 - Integrates with [g-cal-tools](https://github.com/bspeagle/g-cal-tools) for Google Calendar operations
 - Inspired by the complexity of managing controlled substances in split custody arrangements
+- 90s hacker aesthetic inspired by classic terminal UIs and cyberpunk culture 🏴‍☠️
 
 ---
 
 ## Roadmap 🗺️
 
-- [ ] `record-fill` command for new prescriptions
-- [ ] `history` command for viewing past fills/distributions
-- [ ] Web UI for easier access
+- [x] ~~Web UI for easier access~~ ✅ **DONE!** (PILL TERMINAL 9000)
+- [x] ~~`record-fill` command~~ ✅ **DONE!** (CLI & Web)
+- [x] ~~`history` command~~ ✅ **DONE!** (CLI & Web)
+- [x] ~~Edit existing records~~ ✅ **DONE!** (Web only)
+- [ ] iOS/Android mobile app
 - [ ] SMS/Email notifications
 - [ ] Multi-child support
 - [ ] Pharmacy API integration
