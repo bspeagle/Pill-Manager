@@ -94,11 +94,11 @@ function syncCalendar() {
                         addLog(`  • ${event.summary} - ${event.date}`, 'success');
                     });
                     
-                    btn.textContent = '✅ SYNC COMPLETE';
+                    addLog('', 'info');
+                    addLog('✓ Ready to sync again or return to dashboard', 'success');
                     
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 3000);
+                    btn.textContent = '🔄 SYNC AGAIN';
+                    btn.disabled = false;
                 }, 500);
             } else {
                 addLog('❌ SYNC FAILED: ' + data.error, 'error');
