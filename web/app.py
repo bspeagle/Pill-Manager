@@ -73,22 +73,29 @@ def index():
                 next_mom_day = custody.get_next_mother_custody_day(after_date)
                 refill_date = refill['eligible_date']
                 
+                # Determine distribution period start date (same logic as CLI)
+                # If we have pills with father, use current fill date
+                # If we're out, use next refill date
+                if dist['pills_with_father'] > 0:
+                    distribution_start = fill['date']
+                else:
+                    distribution_start = refill_date
+                
+                # Calculate 30-day period from fill date - distribute ALL pills based on custody
+                distribution_end = distribution_start + timedelta(days=30)
+                distribution = custody.get_pill_distribution(distribution_start, distribution_end)
+                
                 # Calculate next distribution using same logic as CLI
                 next_dist = calc.calculate_next_distribution(
                     mother_out_date=dist['mother_out_date'],
                     refill_date=refill_date,
                     next_mother_custody_day=next_mom_day,
-                    mother_pills_needed=0  # Will recalculate
+                    mother_pills_needed=distribution['mother_pills']
                 )
-                
-                # Calculate pills needed from first pill day until next refill
-                # This matches CLI logic - calculate until next refill, not fixed 30 days
-                first_pill_day = custody.get_next_mother_custody_day(next_dist['distribution_date'])
-                distribution = custody.get_pill_distribution(first_pill_day, refill_date)
                 
                 next_distribution = {
                     'date': next_dist['distribution_date'],
-                    'quantity': distribution['mother_pills'],  # Use recalculated quantity
+                    'quantity': next_dist['pills_to_give'],
                     'days_until': (next_dist['distribution_date'] - date.today()).days
                 }
             except:
@@ -184,21 +191,30 @@ def new_distribution():
             next_mom_day = custody.get_next_mother_custody_day(after_date)
             refill_date = refill['eligible_date']
             
+            # Determine distribution period start date (same logic as CLI)
+            # If we have pills with father, use current fill date
+            # If we're out, use next refill date
+            if dist['pills_with_father'] > 0:
+                distribution_start = fill['date']
+            else:
+                distribution_start = refill_date
+            
+            # Calculate 30-day period from fill date - distribute ALL pills based on custody
+            distribution_end = distribution_start + timedelta(days=30)
+            distribution = custody.get_pill_distribution(distribution_start, distribution_end)
+            
             # Calculate next distribution
             next_dist = calc.calculate_next_distribution(
                 mother_out_date=after_date,
                 refill_date=refill_date,
                 next_mother_custody_day=next_mom_day,
-                mother_pills_needed=0  # Will recalculate
+                mother_pills_needed=distribution['mother_pills']
             )
             
-            # Calculate pills needed from first pill day until next refill (matching CLI logic)
-            next_pill_day = custody.get_next_mother_custody_day(next_dist['distribution_date'])
-            distribution = custody.get_pill_distribution(next_pill_day, refill_date)
-            
-            suggested_quantity = distribution['mother_pills']
+            suggested_quantity = next_dist['pills_to_give']
             
             # Calculate period for notes - from first pill day through when those pills run out
+            next_pill_day = custody.get_next_mother_custody_day(next_dist['distribution_date'])
             pills_run_out = custody.calculate_mother_run_out_date(next_pill_day, suggested_quantity)
             suggested_notes = f"Distribution for {next_pill_day.strftime('%b %d')} - {pills_run_out.strftime('%b %d, %Y')} period"
         
