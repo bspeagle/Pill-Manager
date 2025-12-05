@@ -197,6 +197,10 @@ body::after {
     color: var(--terminal-green);
 }
 
+.status-card .value.info {
+    color: var(--info-cyan);
+}
+
 @keyframes blink {
     0%, 49% { opacity: 1; }
     50%, 100% { opacity: 0.3; }

@@ -77,34 +77,28 @@
         </div>
         <div class="label">Pills with Father:</div>
         <div class="value success">{{ status.distribution.pills_with_father }} pills</div>
+        
+        {% if next_distribution %}
+        <!-- Next Distribution (integrated) -->
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--terminal-green);">
+            <div class="label">📅 Next Distribution:</div>
+            <div class="value {% if next_distribution.days_until == 0 %}danger{% elif next_distribution.days_until <= 2 %}warning{% else %}info{% endif %}">
+                {{ next_distribution.date.strftime('%b %d, %Y') }}
+                {% if next_distribution.days_until == 0 %}
+                    (TODAY!)
+                {% elif next_distribution.days_until == 1 %}
+                    (TOMORROW!)
+                {% else %}
+                    ({{ next_distribution.days_until }} days)
+                {% endif %}
+            </div>
+            <div class="label">Give Her:</div>
+            <div class="value info">{{ next_distribution.quantity }} pills</div>
+        </div>
+        {% endif %}
     </div>
     {% endif %}
 </div>
-
-{% if next_distribution %}
-<!-- Next Distribution Info -->
-<div class="terminal-window">
-    <h2>>> NEXT DISTRIBUTION</h2>
-    <div class="status-card">
-        <div class="label">Give Pills On:</div>
-        <div class="value {% if next_distribution.days_until <= 2 %}warning{% else %}success{% endif %}">
-            {{ next_distribution.date.strftime('%B %d, %Y') }}
-        </div>
-        <div class="label">Quantity:</div>
-        <div class="value success">{{ next_distribution.quantity }} pills</div>
-        <div class="label">Days Until:</div>
-        <div class="value {% if next_distribution.days_until <= 2 %}warning{% else %}success{% endif %}">
-            {% if next_distribution.days_until == 0 %}
-                TODAY!
-            {% elif next_distribution.days_until == 1 %}
-                TOMORROW!
-            {% else %}
-                {{ next_distribution.days_until }} days
-            {% endif %}
-        </div>
-    </div>
-</div>
-{% endif %}
 
 <!-- Action Buttons -->
 <div class="terminal-window">
